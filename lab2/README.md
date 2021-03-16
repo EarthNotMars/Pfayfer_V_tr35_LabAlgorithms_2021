@@ -9,8 +9,7 @@ print(x)
 y=[]
 y= list(x) 
 k=0
-
-# Start the stopwatch / counter  
+  
 t1_start = process_time()
 for i in range(1,1000):
     start = process_time()
