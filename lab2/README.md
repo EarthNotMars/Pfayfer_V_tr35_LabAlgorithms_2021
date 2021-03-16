@@ -1,8 +1,8 @@
-import numpy as np
-from time import process_time 
-import os, psutil
-import matplotlib.pyplot as plt
-import copy
+import numpy as np 
+from time import process_time  
+import os, psutil 
+import matplotlib.pyplot as plt 
+import copy 
 
 x = np.arange(1,100001,1) #creating list
 print(x)
