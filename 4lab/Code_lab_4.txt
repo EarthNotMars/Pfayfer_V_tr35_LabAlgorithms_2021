@@ -6,21 +6,86 @@ import copy
 from numpy import random
 
 t1 = 0
-x = random.randint(1000000, size=(100000)) #creating list
+x = random.randint(1000000, size=(1000)) #creating list
 #add primary sorting before Bucket sort
 #x = sorted(x, key=None, reverse=True)
 process = psutil.Process(os.getpid())
 # ------------------------------------
 #Bucket Sort Implementation in Python
 #https://stackabuse.com/bucket-sort-in-python/
-def insertion_sort(bucket):
-    for i in range (1, len (bucket)):
-        var = bucket[i]
+def in_sort(array, left=0, right=None):
+    if right is None:
+        right = len(array) - 1
+
+    # Loop from the element indicated by
+    # `left` until the element indicated by `right`
+    for i in range(left + 1, right + 1):
+        # This is the element we want to position in its
+        # correct place
+        key_item = array[i]
+
+        # Initialize the variable that will be used to
+        # find the correct position of the element referenced
+        # by `key_item`
         j = i - 1
-        while (j >= 0 and var < bucket[j]):
-            bucket[j + 1] = bucket[j]
-            j = j - 1
-        bucket[j + 1] = var
+
+        # Run through the list of items (the left
+        # portion of the array) and find the correct position
+        # of the element referenced by `key_item`. Do this only
+        # if the `key_item` is smaller than its adjacent values.
+        while j >= left and array[j] > key_item:
+            # Shift the value one position to the left
+            # and reposition `j` to point to the next element
+            # (from right to left)
+            array[j + 1] = array[j]
+            j -= 1
+
+        # When you finish shifting the elements, position
+        # the `key_item` in its correct location
+        array[j + 1] = key_item
+
+    return array
+
+def insertion_sort(array):
+    min_run = 32
+    n = len(array)
+
+    # Start by slicing and sorting small portions of the
+    # input array. The size of these slices is defined by
+    # your `min_run` size.
+    for i in range(0, n, min_run):
+        in_sort(array, i, min((i + min_run - 1), n - 1))
+
+    # Now you can start merging the sorted slices.
+    # Start from `min_run`, doubling the size on
+    # each iteration until you surpass the length of
+    # the array.
+    size = min_run
+    while size < n:
+        # Determine the arrays that will
+        # be merged together
+        for start in range(0, n, size * 2):
+            # Compute the `midpoint` (where the first array ends
+            # and the second starts) and the `endpoint` (where
+            # the second array ends)
+            midpoint = start + size - 1
+            end = min((start + size * 2 - 1), (n-1))
+
+            # Merge the two subarrays.
+            # The `left` array should go from `start` to
+            # `midpoint + 1`, while the `right` array should
+            # go from `midpoint + 1` to `end + 1`.
+            merged_array = merge(
+                left=array[start:midpoint + 1],
+                right=array[midpoint + 1:end + 1])
+
+            # Finally, put the merged array back into
+            # your array
+            array[start:start + len(merged_array)] = merged_array
+
+        # Each iteration should double the size of your arrays
+        size *= 2
+
         
 def bucket_sort(input_list):
     # Find maximum value in the list and use length of the list to determine which value in the list goes into which bucket 
@@ -57,12 +122,14 @@ def main():
     #print(input_list)
     t1_start = process_time()
     sorted_list = bucket_sort(input_list)
-   # print(sorted_list)
+    #print('sorted LIST:')
+    #print(sorted_list)
     t1_stop = process_time()
     print("Elapsed time during the whole program in seconds:", t1_stop-t1_start) 
     
-#main()
+main()
 
+#""""
 #PRACTICAL VERSION
 fig, ax = plt.subplots()  # Create a figure and an axes.
 ax.plot([50,100,500,1000,5000,10000,50000,100000], [0,0,0,0.016,0.09375,0.3281,11.09,121.7], label='Worst-case')  # Plot some data on the (implicit) axes.
@@ -93,9 +160,71 @@ ak.set_ylabel('Mmeory, Mbits')
 ak.set_title("Memory comparison")
 ak.legend()
 
+#Improvement
+fig, axa = plt.subplots()  # Create a figure and an axes.
+axa.plot([50,100,500,1000,5000,10000,50000,100000], [0,0,0,0.016,0.09375,0.3281,11.09,121.7], label='Worst-case')  # Plot some data on the (implicit) axes.
+axa.plot([50,100,500,1000,5000,10000,50000,100000], [0,0,0,0.016,0.07812,0.29687,10.31,101.33], label='Improvement #1 Bubble')  # etc.
+axa.plot([50,100,500,1000,5000,10000,50000,100000], [0,0,0,0.016,0.0625,0.29687,10.2,100], label='Improvement #2 Timsort')
+axa.set_xlabel('Elements')
+axa.set_ylabel('Time, sec')
+axa.set_title("Improvement methods")
+axa.legend()
+
+
+
+#"""""
+
 #Best case - random range between 0 - 10 000;  + standart sorting before Bucket sort 
 #Average case - random range between 0 - 10 000;
 #Worst case - random range between 0 - 1000 000
+#
 
 #-------------------------------------
 print("Memory Usage:", (process.memory_info().rss))  # in Mbits
+
+
+
+""""
+
+Improvement Wors-case #1
+Bubble Sort
+https://realpython.com/sorting-algorithms-python/
+def insertion_sort(array):
+    n = len(array)
+
+    for i in range(n):
+        # Create a flag that will allow the function to
+        # terminate early if there's nothing left to sort
+        already_sorted = True
+
+        # Start looking at each item of the list one by one,
+        # comparing it with its adjacent value. With each
+        # iteration, the portion of the array that you look at
+        # shrinks because the remaining items have already been
+        # sorted.
+        for j in range(n - i - 1):
+            if array[j] > array[j + 1]:
+                # If the item you're looking at is greater than its
+                # adjacent value, then swap them
+                array[j], array[j + 1] = array[j + 1], array[j]
+
+                # Since you had to swap two elements,
+                # set the `already_sorted` flag to `False` so the
+                # algorithm doesn't finish prematurely
+                already_sorted = False
+
+        # If there were no swaps during the last iteration,
+        # the array is already sorted, and you can terminate
+        if already_sorted:
+            break
+
+Improvement Wors-case #2
+
+
+
+Bubble sort - почерговий обхід по елементам та порівняння теперішнього елемента з попереднім за величиною. 
+якщо current по value менший за попередній - міняються місцями 
+Insertion sort - беремо початковий елемент та порівнюємо його зі всіма наступними
+
+"""""
+    
